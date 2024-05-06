@@ -1,0 +1,92 @@
+local a = {
+    [1] = true,
+    s = {
+        v = 30
+    }
+}
+local E = 5
+
+local a_mt = {
+    __index = function(t, k)
+        return rawget(t, k)
+    end,
+    __newindex = function(t, k, v)
+        rawset(t, k, v)
+    end
+}
+
+setmetatable(a, a_mt)
+
+local g_mt = {
+    __index = function(t, k)
+        return rawget(t, k)
+    end,
+    __newindex = function(t, k, v)
+        rawset(t, k, v)
+    end
+}
+
+setmetatable(_G, g_mt)
+
+local gui = Instance.new("ScreenGui")
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 120)
+frame.BackgroundColor3 = Color3.fromRGB(51, 51, 51)
+frame.BorderSizePixel = 0
+frame.Position = UDim2.new(0.5, -100, 0.5, -60)
+frame.Active = true
+frame.Draggable = true
+frame.Parent = gui
+
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 0.5, 0)
+textLabel.Position = UDim2.new(0, 0, 0, 0)
+textLabel.Text = "Get Cash"
+textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+textLabel.Font = Enum.Font.SourceSansBold
+textLabel.TextSize = 18
+textLabel.BackgroundTransparency = 1
+textLabel.Parent = frame
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(1, 0, 0.5, 0)
+button.Position = UDim2.new(0, 0, 0.5, 0)
+button.Text = "Cash Income"
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.BackgroundColor3 = Color3.fromRGB(65, 105, 225)
+button.BorderSizePixel = 0
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 16
+button.Parent = frame
+
+local running = false
+local remoteEvent = game:GetService("ReplicatedStorage").Events.TakeMoneyEvent
+local cashEvent
+
+button.MouseButton1Click:Connect(function()
+    running = not running
+    if running then
+        button.Text = "Stop Cash"
+        cashEvent = game:GetService("RunService").Heartbeat:Connect(function()
+            remoteEvent:FireServer(unpack(a))
+        end)
+    else
+        button.Text = "Cash Income"
+        if cashEvent then
+            cashEvent:Disconnect()
+        end
+    end
+end)
+
+gui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+for i = 1, E do
+    local s, e = pcall(function()
+        game:GetService("Players").LocalPlayer.Character.Humanoid.WalkSpeed = a.s.v
+        remoteEvent:FireServer(unpack(a))
+    end)
+
+    if not s then
+        print("Error: " .. tostring(e))
+    end
+end
